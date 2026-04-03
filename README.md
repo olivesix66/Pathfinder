@@ -1,36 +1,92 @@
-# Pathfinder
+# Visualizador de Pathfinding
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+Um visualizador interativo de algoritmos de pathfinding, desenvolvido com LibGDX e disponível para uso no navegador via GWT.
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
+🌐 **[Acesse a versão web →](https://olivesix66.github.io/Pathfinder/)**
 
-## Platforms
+---
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
-- `html`: Web platform using GWT and WebGL. Supports only Java projects.
+## Sobre o projeto
 
-## Gradle
+Este projeto é uma plataforma para visualizar e comparar diferentes algoritmos de pathfinding em tempo real. O objetivo é explorar como cada algoritmo navega por uma grade, observando suas diferenças de comportamento, eficiência e custo.
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+Atualmente implementado: **A\***. O A* é um dos algoritmos de pathfinding mais utilizados em jogos e robótica — ele encontra o caminho mais curto entre dois pontos combinando o custo real de chegar a um nó com uma estimativa heurística da distância restante, tornando-o ao mesmo tempo ótimo e eficiente.
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `html:dist`: compiles GWT sources. The compiled application can be found at `html/build/dist`: you can use any HTTP server to deploy it.
-- `html:superDev`: compiles GWT sources and runs the application in SuperDev mode. It will be available at [localhost:8080/html](http://localhost:8080/html). Use only during development.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+Defina o ponto de início e o objetivo, desenhe paredes, gere labirintos e acompanhe um agente percorrendo o caminho encontrado.
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+---
+
+## Como funciona
+
+A implementação utiliza a **heurística de distância Octile**, que lida com movimentos diagonais de forma mais precisa do que a heurística Manhattan tradicional. Enquanto Manhattan calcula a distância considerando apenas movimentos horizontais e verticais, a Octile leva em conta que passos diagonais são mais baratos do que dois passos cardinais, produzindo caminhos mais naturais.
+
+A grade é representada como uma matriz bidimensional de nós. Cada nó registra:
+- **Custo G** — distância percorrida a partir do nó inicial
+- **Custo H** — estimativa heurística até o objetivo
+- **Custo F** — soma de G e H (o valor que o A* minimiza)
+
+A cada iteração, o algoritmo seleciona o nó aberto com menor custo F, expande seus vizinhos e atualiza os custos até que o objetivo seja alcançado.
+
+![pathfinder](https://github.com/user-attachments/assets/e180d62b-864d-42b7-ab6f-9bcef9d2df98)
+
+---
+
+## Como usar
+
+| Entrada         | Ação                                                                                 |
+|-----------------|--------------------------------------------------------------------------------------|
+| Clique esquerdo | Define o nó inicial (primeiro clique) / Define o objetivo e executa (segundo clique) |
+| Clique do meio  | Alterna parede no nó clicado                                                         |
+| Barra de espaço | Gera um novo labirinto aleatório                                                     |
+
+### Cores dos nós
+
+| Cor          | Significado |
+|--------------|-------------|
+| 🔵 Ciano    | Nó inicial |
+| 🟥 Vermelho | Nó objetivo |
+| ⬛ Preto    | Parede (nó sólido) |
+| 🟧 Salmão   | Lista aberta — nós sendo avaliados |
+| 🟦 Azul     | Lista fechada — nós já avaliados |
+| 🟩 Verde    | Caminho final encontrado |
+
+---
+
+## Rodando localmente
+
+**Pré-requisitos:** Java 11, Gradle
+
+```bash
+# Clone o repositório
+git clone https://github.com/olivesix66/Pathfinder.git
+cd pathfinder
+
+# Versão desktop
+./gradlew lwjgl3:run
+
+# Build da versão web
+./gradlew html:dist
+# Resultado em html/build/dist/ — sirva com qualquer servidor de arquivos estáticos
+
+# Versão web em modo de desenvolvimento (com hot reload)
+./gradlew html:superDev
+# Acesse http://localhost:8080
+...
+```
+---
+
+## Tecnologias
+
+- **[LibGDX](https://libgdx.com/)** — framework de desenvolvimento de jogos em Java
+- **[GWT](https://www.gwtproject.org/)** — compila Java para JavaScript para deploy na web
+- **Java**
+
+---
+
+## Funcionalidades planejadas
+
+- Suporte a múltiplos algoritmos (Dijkstra, BFS, Greedy Best-First)
+- Seleção de heurística (Octile, Manhattan, Euclidiana)
+- Movimento diagonal opcional
+- Tamanho da grade configurável
+- Controles via interface gráfica
