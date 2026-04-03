@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -24,6 +25,7 @@ public class Pathfinder extends ApplicationAdapter {
     private BitmapFont font;
     private World world;
     private AStar astar;
+    private Agent agent;
 
     private OrthographicCamera camera;
     private FitViewport viewport;
@@ -34,12 +36,19 @@ public class Pathfinder extends ApplicationAdapter {
     private enum Phase {SET_INIT, SET_GOAL}
     private Phase phase = Phase.SET_INIT;
 
+    private boolean maze;
+    private boolean paused;
+
     @Override
     public void create() {
 
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
         this.font = new BitmapFont();
+        this.font.getRegion().getTexture().setFilter(
+            Texture.TextureFilter.Linear,
+            Texture.TextureFilter.Linear
+        );
 
         int worldWidth  = 25; // 25 horizontal tiles - 25 * 64 = 1600 pixels
         int worldHeight = 15; // 15 vertical tiles - 15 * 64 = 960 pixels
@@ -48,6 +57,7 @@ public class Pathfinder extends ApplicationAdapter {
         this.world.build();
 
         this.astar = new AStar(world);
+        this.agent = new Agent(0,0);
 
         this.camera = new OrthographicCamera();
         this.viewport = new FitViewport(world.getWidthInPixels(), world.getHeightInPixels(), camera);
@@ -79,15 +89,36 @@ public class Pathfinder extends ApplicationAdapter {
 
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
             GridPoint2 mouseCords = getWorldCoordsFromMouseClick(Gdx.input.getX(), Gdx.input.getY());
-            if(world.isNodeOutBounds(mouseCords.x, mouseCords.y)) return;
+            if(world.isNodeOutBounds(mouseCords.x, mouseCords.y) ||
+               world.getNode(mouseCords.x, mouseCords.y).isSolid()){
+                return;
+            }
+
             if(phase == Phase.SET_INIT){
+                this.agent.setPos(mouseCords.x, mouseCords.y);
                 this.astar.setInit(mouseCords.x, mouseCords.y);
                 this.phase = Phase.SET_GOAL;
             }else{
-                this.astar.findPath(mouseCords.x, mouseCords.y, true);
+                this.agent.setPath(astar.findPath(mouseCords.x, mouseCords.y, true));
                 this.phase = Phase.SET_INIT;
             }
         }
+
+        if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
+            this.astar.reset();
+            this.phase = Phase.SET_INIT;
+
+            if(!maze){
+                this.world.generateMaze();
+                this.agent.setPos(1, 1);
+                this.maze = true;
+            }else{
+                this.world.build();
+                this.maze = false;
+            }
+        }
+
+        this.agent.update(dt);
     }
 
     @Override
@@ -95,8 +126,19 @@ public class Pathfinder extends ApplicationAdapter {
         this.viewport.update(width, height, true);
     }
 
+    public void pause() {
+        this.paused = true;
+    }
+
+    @Override
+    public void resume() {
+        this.paused = false;
+    }
+
     @Override
     public void render() {
+        if(paused) return;
+
         this.update(Gdx.graphics.getDeltaTime());
 
         this.viewport.apply(true);
@@ -108,6 +150,7 @@ public class Pathfinder extends ApplicationAdapter {
         this.shapeRenderer.begin();
         this.world.draw(shapeRenderer);
         this.astar.drawPath(shapeRenderer);
+        this.agent.render(shapeRenderer);
         this.shapeRenderer.end();
 
         this.batch.setProjectionMatrix(camera.combined);

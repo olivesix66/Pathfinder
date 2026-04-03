@@ -36,7 +36,7 @@ public class AStar {
         return Integer.compare(n1.getHCost(), n2.getHCost());
     }
 
-    private void reset() {
+    public void reset() {
         this.openedList.clear();
         this.closedList.clear();
         this.path.clear();
@@ -52,7 +52,6 @@ public class AStar {
 
     private void setTarget(int goalCol, int goalRow) {
         this.goalNode = world.getNode(goalCol, goalRow);
-        if(goalNode.isSolid()) return;
 
         for(int col = 0; col < world.getWidth(); col++) {
             for(int row = 0; row < world.getHeight(); row++) {
@@ -142,7 +141,7 @@ public class AStar {
     public void drawPath(ShapeRenderer shapeRenderer) {
         shapeRenderer.set(ShapeRenderer.ShapeType.Filled);
 
-        shapeRenderer.setColor(Color.YELLOW);
+        shapeRenderer.setColor(Color.SALMON);
         this.openedList.forEach(node -> {
             float drawX = node.getPosition().x + 2;
             float drawY = node.getPosition().y + 2;

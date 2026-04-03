@@ -7,6 +7,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Stack;
+
 public class World {
 
     public static final int TILE_SIZE = 64;
@@ -67,8 +72,67 @@ public class World {
         node.setSolid(!node.isSolid());
     }
 
+    public void generateMaze() {
+        // reset all nodes as solid
+        for (int col = 0; col < width; col++) {
+            for (int row = 0; row < height; row++) {
+                grid[col][row].setSolid(true);
+            }
+        }
+
+        Random random = new Random();
+        boolean[][] visited = new boolean[width][height];
+        Stack<int[]> stack = new Stack<>();
+
+        // maze cells sit on odd positions
+        int startCol = 1;
+        int startRow = 1;
+
+        grid[startCol][startRow].setSolid(false);
+        visited[startCol][startRow] = true;
+        stack.push(new int[]{startCol, startRow});
+
+        // directions in steps of 2 (skips the wall between cells)
+        int[][] dirs = {{0, 2}, {0, -2}, {2, 0}, {-2, 0}};
+
+        while (!stack.isEmpty()) {
+            int[] current = stack.peek();
+            int col = current[0];
+            int row = current[1];
+
+            List<int[]> neighbors = new ArrayList<>();
+            for (int[] dir : dirs) {
+                int nextCol = col + dir[0];
+                int nextRow = row + dir[1];
+                if (!isNodeOutBounds(nextCol, nextRow) && !visited[nextCol][nextRow]) {
+                    neighbors.add(new int[]{nextCol, nextRow, dir[0] / 2, dir[1] / 2});
+                }
+            }
+
+            if (!neighbors.isEmpty()) {
+                int[] chosen = neighbors.get(random.nextInt(neighbors.size()));
+                int nextCol = chosen[0];
+                int nextRow = chosen[1];
+                int wallCol = col + chosen[2];
+                int wallRow = row + chosen[3];
+
+                // open the cell and the wall between them
+                grid[nextCol][nextRow].setSolid(false);
+                grid[wallCol][wallRow].setSolid(false);
+                visited[nextCol][nextRow] = true;
+                stack.push(new int[]{nextCol, nextRow});
+            } else {
+                stack.pop();
+            }
+        }
+    }
+
     public void draw(ShapeRenderer shapeRenderer){
         shapeRenderer.set(ShapeRenderer.ShapeType.Filled);
+
+        shapeRenderer.setColor(Color.WHITE);
+        shapeRenderer.rect(0, 0, widthInPixels, heightInPixels);
+
         for(int col = 0; col < width; col++){
             for(int row = 0; row < height; row++){
                 Node node = getNode(col, row);
