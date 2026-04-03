@@ -2,7 +2,7 @@
 
 Um visualizador interativo de algoritmos de pathfinding, desenvolvido com LibGDX e disponível para uso no navegador via GWT.
 
-🌐 **[Acesse a versão web →](https://olivesix66.github.io/Pathfinder/)**
+🌐 **[Acesse a versão web →] https://olivesix66.github.io/Pathfinder/ **
 
 ---
 
